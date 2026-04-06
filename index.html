@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galeri Foto</title>
+
+  <!-- Google Fonts: mengimpor font dari internet -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- ========================
+       CSS (TAMPILAN / GAYA)
+       ======================== -->
+  <style>
+    /* === VARIABEL WARNA === */
+    /* Kita simpan warna di sini supaya mudah diganti */
+    :root {
+      --bg: #f5f0e8;          /* warna latar belakang */
+      --putih: #ffffff;
+      --hitam: #1a1a1a;
+      --abu: #888888;
+      --aksen: #c8854a;       /* warna oranye sebagai aksen */
+      --kartu-bayangan: 0 4px 20px rgba(0,0,0,0.10);
+    }
+
+    /* === RESET DASAR === */
+    /* Menghapus margin & padding bawaan browser */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--hitam);
+      min-height: 100vh;
+    }
+
+    /* ========================
+       HEADER (bagian atas)
+       ======================== */
+    header {
+      text-align: center;
+      padding: 60px 20px 30px;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      color: var(--hitam);
+      letter-spacing: -1px;
+    }
+
+    header p {
+      color: var(--abu);
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+
+    /* Garis dekoratif di bawah judul */
+    .garis-judul {
+      width: 60px;
+      height: 3px;
+      background: var(--aksen);
+      margin: 16px auto 0;
+      border-radius: 2px;
+    }
+
+    /* ========================
+       TOMBOL FILTER KATEGORI
+       ======================== */
+    .filter-wrapper {
+      display: flex;           /* susun tombol secara horizontal */
+      justify-content: center; /* tengah-tengahkan */
+      flex-wrap: wrap;         /* turun ke baris baru kalau layar kecil */
+      gap: 10px;               /* jarak antar tombol */
+      margin: 30px 20px;
+    }
+
+    .btn-filter {
+      padding: 8px 22px;
+      border: 2px solid var(--hitam);
+      background: transparent;
+      border-radius: 999px;    /* membuat tombol jadi pil/oval */
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;         /* kursor jadi tangan saat hover */
+      transition: all 0.2s;   /* animasi halus saat berubah */
+      color: var(--hitam);
+    }
+
+    /* Gaya saat tombol di-hover (mouse di atasnya) */
+    .btn-filter:hover {
+      background: var(--hitam);
+      color: var(--putih);
+    }
+
+    /* Gaya tombol yang sedang aktif/terpilih */
+    .btn-filter.aktif {
+      background: var(--aksen);
+      border-color: var(--aksen);
+      color: var(--putih);
+    }
+
+    /* ========================
+       GRID FOTO
+       ======================== */
+    .grid-galeri {
+      display: grid;
+
+      /* Buat kolom otomatis: minimal 260px, maksimal fleksibel */
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+
+      gap: 20px;               /* jarak antar kartu */
+      max-width: 1200px;       /* lebar maksimum layout */
+      margin: 0 auto;          /* tengahkan layout */
+      padding: 0 20px 60px;
+    }
+
+    /* ========================
+       KARTU FOTO (tiap item)
+       ======================== */
+    .kartu {
+      background: var(--putih);
+      border-radius: 16px;
+      overflow: hidden;        /* gambar tidak keluar dari kotak */
+      box-shadow: var(--kartu-bayangan);
+      cursor: pointer;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+
+    /* Efek saat kartu di-hover: sedikit terangkat */
+    .kartu:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
+    }
+
+    .kartu img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;       /* gambar tidak gepeng/meregang */
+      display: block;
+    }
+
+    .kartu-info {
+      padding: 14px 16px;
+    }
+
+    .kartu-info h3 {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .kartu-info span {
+      font-size: 0.8rem;
+      color: var(--abu);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* ========================
+       LIGHTBOX (popup foto besar)
+       ======================== */
+    .lightbox {
+      display: none;           /* disembunyikan dulu */
+      position: fixed;         /* menutupi seluruh layar */
+      inset: 0;                /* shorthand untuk top/right/bottom/left: 0 */
+      background: rgba(0,0,0,0.85);
+      z-index: 999;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* Tampilkan lightbox saat class 'terbuka' ditambahkan */
+    .lightbox.terbuka {
+      display: flex;
+    }
+
+    .lightbox-konten {
+      position: relative;
+      max-width: 800px;
+      width: 100%;
+      animation: muncul 0.3s ease;  /* animasi saat muncul */
+    }
+
+    /* Animasi pop-in */
+    @keyframes muncul {
+      from { opacity: 0; transform: scale(0.92); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .lightbox-konten img {
+      width: 100%;
+      border-radius: 12px;
+      display: block;
+    }
+
+    .lightbox-keterangan {
+      color: white;
+      text-align: center;
+      margin-top: 14px;
+    }
+
+    .lightbox-keterangan h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+    }
+
+    .lightbox-keterangan p {
+      color: #aaa;
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
+
+    /* Tombol tutup (×) */
+    .btn-tutup {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      width: 36px;
+      height: 36px;
+      background: var(--aksen);
+      color: white;
+      border: none;
+      border-radius: 50%;      /* bentuk lingkaran */
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Tombol panah navigasi (prev / next) */
+    .btn-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      font-size: 1.8rem;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-nav:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .btn-prev { left: -50px; }
+    .btn-next { right: -50px; }
+
+    /* ========================
+       PESAN "TIDAK ADA HASIL"
+       ======================== */
+    .kosong {
+      text-align: center;
+      color: var(--abu);
+      padding: 60px 20px;
+      grid-column: 1 / -1;    /* rentang seluruh kolom grid */
+      font-size: 1.1rem;
+    }
+
+    /* ========================
+       FOOTER
+       ======================== */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: var(--abu);
+      font-size: 0.85rem;
+      border-top: 1px solid #e0d9ce;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ========================
+       HEADER
+       ======================== -->
+  <header>
+    <h1>📷 Galeri Foto</h1>
+    <p>Kumpulan foto indah dari berbagai kategori</p>
+    <div class="garis-judul"></div>
+  </header>
+
+  <!-- ========================
+       TOMBOL FILTER
+       ======================== -->
+  <div class="filter-wrapper" id="filterWrapper">
+    <!-- Tombol dibuat oleh JavaScript di bawah -->
+  </div>
+
+  <!-- ========================
+       GRID FOTO
+       ======================== -->
+  <div class="grid-galeri" id="gridGaleri">
+    <!-- Kartu foto dibuat oleh JavaScript di bawah -->
+  </div>
+
+  <!-- ========================
+       LIGHTBOX (popup)
+       ======================== -->
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-konten">
+
+      <!-- Tombol tutup -->
+      <button class="btn-tutup" id="btnTutup">×</button>
+
+      <!-- Tombol navigasi kiri -->
+      <button class="btn-nav btn-prev" id="btnPrev">‹</button>
+
+      <!-- Foto besar -->
+      <img id="lightboxGambar" src="" alt="" />
+
+      <!-- Tombol navigasi kanan -->
+      <button class="btn-nav btn-next" id="btnNext">›</button>
+
+      <!-- Keterangan foto -->
+      <div class="lightbox-keterangan">
+        <h2 id="lightboxJudul"></h2>
+        <p id="lightboxKategori"></p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================
+       FOOTER
+       ======================== -->
+  <footer>
+    <p>© 2025 Galeri Foto · Dibuat dengan ❤️</p>
+  </footer>
+
+
+  <!-- ========================
+       JAVASCRIPT (LOGIKA)
+       ======================== -->
+  <script>
+
+    // ============================================================
+    // 1. DATA FOTO
+    //    Ini adalah array (daftar) berisi objek-objek foto.
+    //    Setiap foto punya: judul, kategori, dan url gambar.
+    //    Gambar diambil dari picsum.photos (situs foto gratis).
+    // ============================================================
+    const dataFoto = [
+      { judul: "Pegunungan Hijau",   kategori: "Alam",   url: "https://picsum.photos/seed/mountain1/800/600" },
+      { judul: "Pantai Biru",        kategori: "Alam",   url: "https://picsum.photos/seed/beach1/800/600" },
+      { judul: "Hutan Tropis",       kategori: "Alam",   url: "https://picsum.photos/seed/forest1/800/600" },
+      { judul: "Arsitektur Klasik",  kategori: "Kota",   url: "https://picsum.photos/seed/arch1/800/600" },
+      { judul: "Jembatan Megah",     kategori: "Kota",   url: "https://picsum.photos/seed/bridge1/800/600" },
+      { judul: "Jalanan Malam",      kategori: "Kota",   url: "https://picsum.photos/seed/night1/800/600" },
+      { judul: "Kafe Cozy",          kategori: "Kota",   url: "https://picsum.photos/seed/cafe1/800/600" },
+      { judul: "Bunga Mekar",        kategori: "Alam",   url: "https://picsum.photos/seed/flower1/800/600" },
+      { judul: "Danau Tenang",       kategori: "Alam",   url: "https://picsum.photos/seed/lake1/800/600" },
+      { judul: "Kucing Lucu",        kategori: "Hewan",  url: "https://picsum.photos/seed/cat1/800/600" },
+      { judul: "Anjing Ceria",       kategori: "Hewan",  url: "https://picsum.photos/seed/dog1/800/600" },
+      { judul: "Burung Cantik",      kategori: "Hewan",  url: "https://picsum.photos/seed/bird1/800/600" },
+    ];
+
+    // ============================================================
+    // 2. VARIABEL GLOBAL
+    //    Dibutuhkan untuk melacak foto yang sedang ditampilkan.
+    // ============================================================
+    let kategoriFoto    = [];   // daftar kategori unik
+    let fotoYangMuncul  = [];   // foto yang tampil setelah filter
+    let indeksAktif     = 0;    // indeks foto yang sedang dibuka di lightbox
+
+    // ============================================================
+    // 3. FUNGSI: AMBIL DAFTAR KATEGORI UNIK
+    //    Kita pakai Set() untuk menghilangkan duplikat.
+    // ============================================================
+    function ambilKategori() {
+      const semuaKategori = dataFoto.map(f => f.kategori); // ["Alam","Alam","Kota",...]
+      return ["Semua", ...new Set(semuaKategori)];          // ["Semua","Alam","Kota","Hewan"]
+    }
+
+    // ============================================================
+    // 4. FUNGSI: BUAT TOMBOL FILTER
+    // ============================================================
+    function buatTombolFilter() {
+      const wrapper = document.getElementById("filterWrapper");
+      wrapper.innerHTML = ""; // kosongkan dulu
+
+      kategoriFoto.forEach(function(kat) {
+        const tombol = document.createElement("button"); // buat elemen <button>
+        tombol.className = "btn-filter";
+        tombol.textContent = kat;
+
+        // Tombol "Semua" aktif pertama kali
+        if (kat === "Semua") tombol.classList.add("aktif");
+
+        // Saat tombol diklik: filter foto
+        tombol.addEventListener("click", function() {
+          // Hapus class aktif dari semua tombol
+          document.querySelectorAll(".btn-filter").forEach(t => t.classList.remove("aktif"));
+          // Beri class aktif ke tombol yang diklik
+          tombol.classList.add("aktif");
+          // Tampilkan foto sesuai kategori
+          tampilkanFoto(kat);
+        });
+
+        wrapper.appendChild(tombol); // tambahkan tombol ke halaman
+      });
+    }
+
+    // ============================================================
+    // 5. FUNGSI: TAMPILKAN FOTO DI GRID
+    //    Parameter 'kategori' menentukan foto mana yang muncul.
+    // ============================================================
+    function tampilkanFoto(kategori) {
+      const grid = document.getElementById("gridGaleri");
+      grid.innerHTML = ""; // kosongkan grid dulu
+
+      // Filter: ambil semua foto, atau yang sesuai kategori saja
+      if (kategori === "Semua") {
+        fotoYangMuncul = dataFoto; // ambil semua
+      } else {
+        fotoYangMuncul = dataFoto.filter(f => f.kategori === kategori);
+      }
+
+      // Kalau tidak ada foto sama sekali
+      if (fotoYangMuncul.length === 0) {
+        grid.innerHTML = '<p class="kosong">Tidak ada foto di kategori ini.</p>';
+        return;
+      }
+
+      // Buat kartu untuk setiap foto
+      fotoYangMuncul.forEach(function(foto, indeks) {
+        const kartu = document.createElement("div");
+        kartu.className = "kartu";
+
+        // innerHTML: isi HTML di dalam kartu
+        kartu.innerHTML = `
+          <img src="${foto.url}" alt="${foto.judul}" loading="lazy" />
+          <div class="kartu-info">
+            <h3>${foto.judul}</h3>
+            <span>${foto.kategori}</span>
+          </div>
+        `;
+
+        // Saat kartu diklik: buka lightbox
+        kartu.addEventListener("click", function() {
+          bukaLightbox(indeks);
+        });
+
+        grid.appendChild(kartu); // tambahkan kartu ke grid
+      });
+    }
+
+    // ============================================================
+    // 6. FUNGSI: BUKA LIGHTBOX
+    //    Menampilkan foto dalam ukuran besar.
+    // ============================================================
+    function bukaLightbox(indeks) {
+      indeksAktif = indeks;
+      perbaruiLightbox(); // isi data foto
+
+      // Tampilkan lightbox dengan menambahkan class 'terbuka'
+      document.getElementById("lightbox").classList.add("terbuka");
+    }
+
+    // ============================================================
+    // 7. FUNGSI: PERBARUI KONTEN LIGHTBOX
+    //    Mengisi gambar dan teks sesuai indeks aktif.
+    // ============================================================
+    function perbaruiLightbox() {
+      const foto = fotoYangMuncul[indeksAktif];
+      document.getElementById("lightboxGambar").src      = foto.url;
+      document.getElementById("lightboxGambar").alt      = foto.judul;
+      document.getElementById("lightboxJudul").textContent    = foto.judul;
+      document.getElementById("lightboxKategori").textContent = foto.kategori;
+    }
+
+    // ============================================================
+    // 8. FUNGSI: TUTUP LIGHTBOX
+    // ============================================================
+    function tutupLightbox() {
+      document.getElementById("lightbox").classList.remove("terbuka");
+    }
+
+    // ============================================================
+    // 9. NAVIGASI FOTO (prev / next)
+    // ============================================================
+    function fotoSelanjutnya() {
+      // Kalau sudah di foto terakhir, kembali ke foto pertama
+      indeksAktif = (indeksAktif + 1) % fotoYangMuncul.length;
+      perbaruiLightbox();
+    }
+
+    function fotoPrevious() {
+      // Kalau sudah di foto pertama, lompat ke foto terakhir
+      indeksAktif = (indeksAktif - 1 + fotoYangMuncul.length) % fotoYangMuncul.length;
+      perbaruiLightbox();
+    }
+
+    // ============================================================
+    // 10. EVENT LISTENER (pendengar aksi pengguna)
+    // ============================================================
+
+    // Tombol tutup (×)
+    document.getElementById("btnTutup").addEventListener("click", tutupLightbox);
+
+    // Tombol panah kanan (next)
+    document.getElementById("btnNext").addEventListener("click", fotoSelanjutnya);
+
+    // Tombol panah kiri (prev)
+    document.getElementById("btnPrev").addEventListener("click", fotoPrevious);
+
+    // Klik di luar foto → tutup lightbox
+    document.getElementById("lightbox").addEventListener("click", function(e) {
+      // e.target adalah elemen yang diklik
+      // Kalau yang diklik adalah latar belakang lightbox (bukan isinya)
+      if (e.target === this) tutupLightbox();
+    });
+
+    // Tombol keyboard: Escape = tutup, ← = prev, → = next
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape")     tutupLightbox();
+      if (e.key === "ArrowRight") fotoSelanjutnya();
+      if (e.key === "ArrowLeft")  fotoPrevious();
+    });
+
+    // ============================================================
+    // 11. INISIALISASI (jalankan pertama kali)
+    //     Ini kode yang pertama kali dijalankan saat halaman terbuka.
+    // ============================================================
+    kategoriFoto = ambilKategori();   // ambil daftar kategori
+    buatTombolFilter();               // buat tombol filter
+    tampilkanFoto("Semua");           // tampilkan semua foto
+
+  </script>
+
+</body>
+</html>
